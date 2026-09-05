@@ -13,6 +13,9 @@ import {
   Clock,
   Sparkles,
   Volume2,
+  ShieldAlert,
+  RotateCcw,
+  X,
 } from 'lucide-react';
 
 export const VoiceMemosView: React.FC = () => {
@@ -27,6 +30,8 @@ export const VoiceMemosView: React.FC = () => {
     startListening,
     stopListening,
     statusMessage,
+    permissionError,
+    clearPermissionError,
     transcript,
     resetTranscript,
   } = useSpeechRecognition({
@@ -127,7 +132,57 @@ export const VoiceMemosView: React.FC = () => {
           </div>
         </div>
 
-        {statusMessage && (
+        {/* Microphone Permission Diagnostic Card */}
+        {permissionError && (
+          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 text-xs">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/80 text-amber-700 dark:text-amber-300 shrink-0">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-amber-900 dark:text-amber-200 text-sm">
+                    {permissionError.title}
+                  </h4>
+                  <button
+                    onClick={clearPermissionError}
+                    className="text-amber-500 hover:text-amber-700 p-1"
+                    title="إغلاق"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-amber-800 dark:text-amber-300 leading-relaxed">
+                  {permissionError.message}
+                </p>
+                {permissionError.instructions.length > 0 && (
+                  <ul className="list-disc list-inside space-y-1 text-slate-700 dark:text-slate-300 pr-1 pt-1 font-medium">
+                    {permissionError.instructions.map((inst, i) => (
+                      <li key={i}>{inst}</li>
+                    ))}
+                  </ul>
+                )}
+                <div className="pt-2 flex items-center gap-2">
+                  <button
+                    onClick={() => startListening()}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>إعادة فحص وتفعيل الميكروفون</span>
+                  </button>
+                  <button
+                    onClick={clearPermissionError}
+                    className="px-3 py-1.5 rounded-xl border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-200 hover:bg-amber-100/60 dark:hover:bg-amber-900/40 text-xs transition"
+                  >
+                    متابعة بالكتابة اليدوية
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {statusMessage && !permissionError && (
           <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/50 text-xs font-semibold text-rose-700 dark:text-rose-300">
             {statusMessage}
           </div>

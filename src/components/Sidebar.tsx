@@ -17,6 +17,9 @@ import {
   X,
   GraduationCap,
   Sparkles,
+  Monitor,
+  Files,
+  MailCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,6 +28,7 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenVoiceAssistant: () => void;
+  onOpenDesktopSync?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -33,9 +37,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
   onOpenVoiceAssistant,
+  onOpenDesktopSync,
 }) => {
   const { logout } = useAuth();
-  const { appointments, tasks, deadlines, meetings, voiceMemos, activeAlerts } = useData();
+  const { appointments, tasks, deadlines, meetings, voiceMemos, activeAlerts, templates, censorMessages } = useData();
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -78,6 +83,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Users,
       badge: upcomingMeetingsCount > 0 ? upcomingMeetingsCount : undefined,
       badgeColor: 'bg-purple-600',
+    },
+    {
+      id: 'templates',
+      label: 'النماذج والوثائق',
+      icon: Files,
+      badge: templates.length > 0 ? templates.length : undefined,
+      badgeColor: 'bg-indigo-600',
+    },
+    {
+      id: 'censor',
+      label: 'التواصل مع الناظر',
+      icon: MailCheck,
+      badge: censorMessages.length > 0 ? censorMessages.length : undefined,
+      badgeColor: 'bg-cyan-600',
     },
     { id: 'archives', label: 'الأرشيف والملفات', icon: FolderArchive },
     {
@@ -194,17 +213,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </nav>
         </div>
 
-        {/* Bottom Section: Sign Out */}
-        <div className="p-4 border-t border-slate-800">
-          <button
-            onClick={() => logout()}
-            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-red-400 hover:bg-red-950/30 hover:text-red-300 transition cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>تسجيل الخروج</span>
-          </button>
-          <div className="mt-2 text-center text-[10px] text-slate-500 font-mono">
-            الإصدار 1.0.0 • مساعد مدير المتوسطة
+        {/* Bottom Section: Desktop Sync & System Info */}
+        <div className="p-4 border-t border-slate-800 space-y-2">
+          {onOpenDesktopSync && (
+            <button
+              onClick={() => {
+                onOpenDesktopSync();
+                onClose();
+              }}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium text-indigo-300 hover:bg-indigo-950/40 hover:text-indigo-200 border border-indigo-900/50 transition cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <Monitor className="w-4 h-4 text-indigo-400" />
+                <span>تزامن مع سطح المكتب</span>
+              </div>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-indigo-900/60 font-mono text-indigo-200">
+                PC Sync
+              </span>
+            </button>
+          )}
+
+          <div className="pt-1 text-center text-[10px] text-slate-500 font-mono">
+            مساعد مدير المتوسطة • الأستاذ أمحمد شامخة
           </div>
         </div>
       </aside>

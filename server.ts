@@ -42,6 +42,7 @@ interface StoredData {
   users: Record<string, StoredUser>;
   tokens: Record<string, { userId: string; expiresAt: number }>;
   resetCodes: Record<string, { code: string; expiresAt: number }>;
+  desktopSyncKeys?: Record<string, string>; // apiKey -> userId
   userStores: Record<string, {
     appointments: any[];
     tasks: any[];
@@ -49,6 +50,9 @@ interface StoredData {
     meetings: any[];
     voiceMemos: any[];
     archives: any[];
+    absences: any[];
+    templates?: any[];
+    censorMessages?: any[];
     lastSyncedAt: string;
   }>;
 }
@@ -117,11 +121,23 @@ function getUserStore(userId: string) {
       meetings: [],
       voiceMemos: [],
       archives: [],
+      absences: [],
+      templates: [] as any[],
+      censorMessages: [] as any[],
       lastSyncedAt: new Date().toISOString(),
     };
     saveDB(db);
   }
-  return db.userStores[userId];
+  if (!db.userStores[userId].absences) {
+    db.userStores[userId].absences = [];
+  }
+  if (!(db.userStores[userId] as any).templates) {
+    (db.userStores[userId] as any).templates = [];
+  }
+  if (!(db.userStores[userId] as any).censorMessages) {
+    (db.userStores[userId] as any).censorMessages = [];
+  }
+  return db.userStores[userId] as any;
 }
 
 function getOrCreatePrincipalUser(): StoredUser {
@@ -147,6 +163,12 @@ function getOrCreatePrincipalUser(): StoredUser {
         notificationsEnabled: true,
         autoSyncIntervalMinutes: 2,
         academicYear: '2026/2027',
+        censorSettings: {
+          name: 'الأستاذ بلقاسم العربي (ناظر المتوسطة)',
+          officialEmail: 'censor.cem.zabana@education.gov.dz',
+          personalEmail: 'belkacem.censor@gmail.com',
+          phone: '0555123456',
+        },
       },
       createdAt: new Date().toISOString(),
     };
@@ -476,6 +498,9 @@ app.post('/api/data/sync', requireAuth, (req, res) => {
   if (incoming.meetings) store.meetings = incoming.meetings;
   if (incoming.voiceMemos) store.voiceMemos = incoming.voiceMemos;
   if (incoming.archives) store.archives = incoming.archives;
+  if (incoming.absences) store.absences = incoming.absences;
+  if (incoming.templates) store.templates = incoming.templates;
+  if (incoming.censorMessages) store.censorMessages = incoming.censorMessages;
   if (incoming.settings) {
     user.settings = { ...user.settings, ...incoming.settings };
     db.users[user.id] = user;
@@ -488,6 +513,288 @@ app.post('/api/data/sync', requireAuth, (req, res) => {
     success: true,
     lastSyncedAt: store.lastSyncedAt,
     data: store,
+  });
+});
+
+// ===================== CENSOR EMAIL & TEMPLATES API =====================
+
+// Send email to Censor (Saves in record and provides mailto: fallback)
+app.post('/api/censor/send-email', requireAuth, (req, res) => {
+  const user = (req as any).user as StoredUser;
+  const store = getUserStore(user.id);
+  const { toEmailType, toEmails, subject, content, attachedTemplateId, attachedFileName, attachedFileDataUrl } = req.body;
+
+  if (!subject || !content) {
+    return res.status(400).json({ error: 'الرجاء إدخال موضوع الرسالة ونصها' });
+  }
+
+  const recipients = Array.isArray(toEmails) && toEmails.length > 0 ? toEmails : [user.settings?.censorSettings?.officialEmail || 'censor@cem-zabana.dz'];
+
+  const newMessage = {
+    id: 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+    userId: user.id,
+    toEmailType: toEmailType || 'official',
+    toEmails: recipients,
+    subject: subject.trim(),
+    content: content.trim(),
+    attachedTemplateId,
+    attachedFileName,
+    attachedFileDataUrl,
+    sentAt: new Date().toISOString(),
+    status: 'sent',
+  };
+
+  store.censorMessages = [newMessage, ...(store.censorMessages || [])];
+  store.lastSyncedAt = new Date().toISOString();
+  saveDB(db);
+
+  // Construct mailto link for seamless local mail client dispatch
+  const mailtoUrl = `mailto:${recipients.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+    `${content}\n\n---\nمرسلة من مكتب السيد مدير المتوسطة (${user.name})\n${user.institutionName} - السنة الدراسية: ${user.academicYear}` +
+      (attachedFileName ? `\n[مرفق مرتبط: ${attachedFileName}]` : '')
+  )}`;
+
+  res.json({
+    success: true,
+    message: 'تم تسجيل وإرسال الرسالة إلى السيد الناظر بنجاح',
+    data: newMessage,
+    mailtoUrl,
+  });
+});
+
+// Get sent messages to Censor
+app.get('/api/censor/messages', requireAuth, (req, res) => {
+  const user = (req as any).user as StoredUser;
+  const store = getUserStore(user.id);
+  res.json({
+    messages: store.censorMessages || [],
+    censorSettings: user.settings?.censorSettings || null,
+  });
+});
+
+// Update Censor Settings
+app.put('/api/censor/settings', requireAuth, (req, res) => {
+  const user = (req as any).user as StoredUser;
+  const { name, officialEmail, personalEmail, phone, notes } = req.body;
+
+  if (!user.settings) user.settings = {};
+  user.settings.censorSettings = {
+    name: name || user.settings.censorSettings?.name || 'الأستاذ بلقاسم العربي (ناظر المتوسطة)',
+    officialEmail: officialEmail || user.settings.censorSettings?.officialEmail || '',
+    personalEmail: personalEmail || user.settings.censorSettings?.personalEmail || '',
+    phone: phone || user.settings.censorSettings?.phone || '',
+    notes: notes || user.settings.censorSettings?.notes || '',
+  };
+
+  db.users[user.id] = user;
+  saveDB(db);
+
+  res.json({
+    success: true,
+    message: 'تم حفظ وتحديث بيانات السيد الناظر بنجاح',
+    censorSettings: user.settings.censorSettings,
+  });
+});
+
+// ===================== DESKTOP APPLICATION SYNC API =====================
+// Helper to resolve user from Bearer token, desktop sync API key, or default principal
+function resolveDesktopUser(req: express.Request): StoredUser | null {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    const session = db.tokens[token];
+    if (session && session.expiresAt >= Date.now()) {
+      return db.users[session.userId] || null;
+    }
+  }
+
+  const customKey = (req.headers['x-desktop-sync-key'] as string) || (req.query.apiKey as string);
+  if (customKey && db.desktopSyncKeys && db.desktopSyncKeys[customKey]) {
+    const userId = db.desktopSyncKeys[customKey];
+    return db.users[userId] || null;
+  }
+
+  // Fallback to default principal user for seamless desktop pairing
+  return getOrCreatePrincipalUser();
+}
+
+// 1. Desktop Sync Status
+app.get('/api/desktop-sync/status', (req, res) => {
+  const user = resolveDesktopUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'مستخدم سطح المكتب غير مصرح له' });
+  }
+
+  const store = getUserStore(user.id);
+  res.json({
+    status: 'connected',
+    serverTime: new Date().toISOString(),
+    user: {
+      id: user.id,
+      name: user.name,
+      institutionName: user.institutionName,
+      wilaya: user.wilaya,
+      academicYear: user.academicYear,
+    },
+    counts: {
+      appointments: store.appointments?.length || 0,
+      tasks: store.tasks?.length || 0,
+      deadlines: store.deadlines?.length || 0,
+      meetings: store.meetings?.length || 0,
+      voiceMemos: store.voiceMemos?.length || 0,
+      archives: store.archives?.length || 0,
+      absences: store.absences?.length || 0,
+    },
+    lastSyncedAt: store.lastSyncedAt,
+  });
+});
+
+// 2. Generate or fetch desktop pairing API key
+app.get('/api/desktop-sync/token', (req, res) => {
+  const user = resolveDesktopUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'المستخدم غير موجود' });
+  }
+
+  if (!db.desktopSyncKeys) {
+    db.desktopSyncKeys = {};
+  }
+
+  // Find existing or generate new deterministic key for this user
+  let desktopKey = Object.entries(db.desktopSyncKeys).find(([_, uid]) => uid === user.id)?.[0];
+  if (!desktopKey) {
+    desktopKey = 'dsk_' + crypto.randomBytes(20).toString('hex');
+    db.desktopSyncKeys[desktopKey] = user.id;
+    saveDB(db);
+  }
+
+  res.json({
+    apiKey: desktopKey,
+    syncUrl: `${req.protocol}://${req.get('host')}/api/desktop-sync`,
+    userName: user.name,
+    institutionName: user.institutionName,
+  });
+});
+
+// 3. Desktop Pull (Read all updated data from web server)
+app.get('/api/desktop-sync/pull', (req, res) => {
+  const user = resolveDesktopUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'المستخدم غير مصرح له' });
+  }
+
+  const store = getUserStore(user.id);
+  res.json({
+    success: true,
+    lastSyncedAt: store.lastSyncedAt,
+    data: {
+      appointments: store.appointments || [],
+      tasks: store.tasks || [],
+      deadlines: store.deadlines || [],
+      meetings: store.meetings || [],
+      absences: store.absences || [],
+      voiceMemos: store.voiceMemos || [],
+      archives: store.archives || [],
+      settings: user.settings,
+    },
+  });
+});
+
+// 4. Desktop Push (Write new/updated records from desktop application)
+app.post('/api/desktop-sync/push', (req, res) => {
+  const user = resolveDesktopUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'المستخدم غير مصرح له' });
+  }
+
+  const store = getUserStore(user.id);
+  const { appointments, tasks, deadlines, meetings, absences, archives, settings } = req.body;
+
+  const mergeEntities = (existingList: any[], incomingList: any[]) => {
+    if (!incomingList || !Array.isArray(incomingList)) return existingList;
+    const map = new Map();
+    existingList.forEach((item) => map.set(item.id, item));
+    incomingList.forEach((item) => {
+      if (item && item.id) {
+        // Upsert
+        map.set(item.id, { ...map.get(item.id), ...item, updatedAt: new Date().toISOString() });
+      }
+    });
+    return Array.from(map.values());
+  };
+
+  if (appointments) store.appointments = mergeEntities(store.appointments || [], appointments);
+  if (tasks) store.tasks = mergeEntities(store.tasks || [], tasks);
+  if (deadlines) store.deadlines = mergeEntities(store.deadlines || [], deadlines);
+  if (meetings) store.meetings = mergeEntities(store.meetings || [], meetings);
+  if (absences) store.absences = mergeEntities(store.absences || [], absences);
+  if (archives) store.archives = mergeEntities(store.archives || [], archives);
+  if (settings) {
+    user.settings = { ...user.settings, ...settings };
+    db.users[user.id] = user;
+  }
+
+  store.lastSyncedAt = new Date().toISOString();
+  saveDB(db);
+
+  res.json({
+    success: true,
+    message: 'تم تحديث البيانات من تطبيق سطح المكتب بنجاح',
+    lastSyncedAt: store.lastSyncedAt,
+    counts: {
+      appointments: store.appointments.length,
+      tasks: store.tasks.length,
+      deadlines: store.deadlines.length,
+      meetings: store.meetings.length,
+      absences: store.absences.length,
+    },
+  });
+});
+
+// 5. Bidirectional 2-Way Sync (Desktop sends changes, gets back fully merged state)
+app.post('/api/desktop-sync/sync-bidirectional', (req, res) => {
+  const user = resolveDesktopUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'المستخدم غير مصرح له' });
+  }
+
+  const store = getUserStore(user.id);
+  const { localChanges = {} } = req.body;
+
+  const mergeEntities = (existingList: any[], incomingList: any[]) => {
+    if (!incomingList || !Array.isArray(incomingList)) return existingList;
+    const map = new Map();
+    existingList.forEach((item) => map.set(item.id, item));
+    incomingList.forEach((item) => {
+      if (item && item.id) {
+        map.set(item.id, { ...map.get(item.id), ...item, updatedAt: new Date().toISOString() });
+      }
+    });
+    return Array.from(map.values());
+  };
+
+  if (localChanges.appointments) store.appointments = mergeEntities(store.appointments || [], localChanges.appointments);
+  if (localChanges.tasks) store.tasks = mergeEntities(store.tasks || [], localChanges.tasks);
+  if (localChanges.deadlines) store.deadlines = mergeEntities(store.deadlines || [], localChanges.deadlines);
+  if (localChanges.meetings) store.meetings = mergeEntities(store.meetings || [], localChanges.meetings);
+  if (localChanges.absences) store.absences = mergeEntities(store.absences || [], localChanges.absences);
+  if (localChanges.archives) store.archives = mergeEntities(store.archives || [], localChanges.archives);
+
+  store.lastSyncedAt = new Date().toISOString();
+  saveDB(db);
+
+  res.json({
+    success: true,
+    syncedAt: store.lastSyncedAt,
+    mergedData: {
+      appointments: store.appointments || [],
+      tasks: store.tasks || [],
+      deadlines: store.deadlines || [],
+      meetings: store.meetings || [],
+      absences: store.absences || [],
+      archives: store.archives || [],
+      settings: user.settings,
+    },
   });
 });
 

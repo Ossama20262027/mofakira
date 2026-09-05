@@ -16,11 +16,13 @@ export interface UserProfile {
 export interface AppSettings {
   darkMode: boolean;
   soundEnabled: boolean;
-  alertSound: 'chime' | 'bell' | 'soft' | 'marimba';
+  hoverSoundEnabled?: boolean;
+  alertSound: 'alarm' | 'alarm_bell' | 'chime' | 'bell' | 'soft' | 'marimba';
   alertAdvanceMinutes: number; // 5, 10, 15, 30, 60, 1440
   notificationsEnabled: boolean;
   autoSyncIntervalMinutes: number;
   academicYear: string;
+  censorSettings?: CensorSettings;
 }
 
 export type AppointmentType =
@@ -181,6 +183,66 @@ export interface ArchiveDocument {
   createdAt: string;
 }
 
+export type TemplateCategory =
+  | 'admin_letters'      // نماذج المراسلات الإدارية
+  | 'work_certs'         // شهادات العمل
+  | 'school_certs'       // الشهادات المدرسية
+  | 'guidance_minutes'   // محاضر مجلس التوجيه/الإدارة
+  | 'pedagogic_minutes'; // محاضر المجلس التربوي (البيداغوجي)
+
+export interface DocumentTemplate {
+  id: string;
+  userId?: string;
+  title: string;
+  category: TemplateCategory;
+  description?: string;
+  fileType: 'pdf' | 'word' | 'image';
+  fileName: string;
+  fileSize?: string;
+  dataUrl?: string;
+  uploadedAt: string;
+  isStandard?: boolean;
+}
+
+export interface CensorSettings {
+  name: string;
+  personalEmail: string;
+  officialEmail: string;
+  phone?: string;
+  notes?: string;
+}
+
+export interface CensorMessage {
+  id: string;
+  userId: string;
+  toEmailType: 'official' | 'personal' | 'both';
+  toEmails: string[];
+  subject: string;
+  content: string;
+  attachedTemplateId?: string;
+  attachedFileName?: string;
+  attachedFileDataUrl?: string;
+  sentAt: string;
+  status: 'sent' | 'draft';
+}
+
+export interface StaffAbsence {
+  id: string;
+  userId: string;
+  staffName: string;
+  role: 'teacher' | 'administrative' | 'worker' | 'supervisor';
+  subjectOrJob?: string;
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  durationDays: number;
+  reason: 'sick_leave' | 'authorized' | 'unjustified' | 'family' | 'maternity' | 'mission' | 'other';
+  reasonDetails?: string;
+  documentSubmitted: boolean;
+  status: 'pending' | 'justified' | 'unjustified' | 'deducted';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SyncPayload {
   appointments: Appointment[];
   tasks: Task[];
@@ -188,6 +250,9 @@ export interface SyncPayload {
   meetings: Meeting[];
   voiceMemos: VoiceMemo[];
   archives: ArchiveDocument[];
+  absences?: StaffAbsence[];
+  templates?: DocumentTemplate[];
+  censorMessages?: CensorMessage[];
   settings: AppSettings;
   lastSyncedAt: string;
 }

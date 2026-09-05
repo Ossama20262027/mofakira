@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { requestMicrophoneAccess, MicPermissionResult } from '../utils/microphonePermission';
 
 interface UseSpeechRecognitionProps {
   onTranscript?: (text: string) => void;
@@ -11,6 +12,7 @@ export function useSpeechRecognition({ onTranscript, lang = 'ar-DZ' }: UseSpeech
   const [interimTranscript, setInterimTranscript] = useState('');
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [isSupported, setIsSupported] = useState(true);
+  const [permissionError, setPermissionError] = useState<MicPermissionResult | null>(null);
 
   const recognitionRef = useRef<any>(null);
 
@@ -31,7 +33,8 @@ export function useSpeechRecognition({ onTranscript, lang = 'ar-DZ' }: UseSpeech
 
       recognition.onstart = () => {
         setIsListening(true);
-        setStatusMessage('🎙️ جاري الاستماع...');
+        setPermissionError(null);
+        setStatusMessage('🎙️ جاري الاستماع بصوت واضح...');
       };
 
       recognition.onresult = (event: any) => {
@@ -53,7 +56,7 @@ export function useSpeechRecognition({ onTranscript, lang = 'ar-DZ' }: UseSpeech
             if (onTranscript) onTranscript(updated);
             return updated;
           });
-          setStatusMessage('✓ تم تحويل الكلام إلى نص');
+          setStatusMessage('✓ تم تحويل الكلام إلى نص بنجاح');
         }
 
         setInterimTranscript(currentInterim);
@@ -63,11 +66,22 @@ export function useSpeechRecognition({ onTranscript, lang = 'ar-DZ' }: UseSpeech
         console.warn('Speech recognition event error:', event.error);
         setIsListening(false);
         if (event.error === 'not-allowed') {
-          setStatusMessage('يرجى السماح بالوصول إلى الميكروفون لاستخدام الإملاء الصوتي');
+          setPermissionError({
+            granted: false,
+            error: 'denied',
+            title: 'إذن الميكروفون مطلوب',
+            message: 'تم حظر الميكروفون من قبل المتصفح. يرجى تفعيل الإذن لتتمكن من استخدام الأوامر الصوتية.',
+            instructions: [
+              'انقر على أيقونة القفل أو الكاميرا بجانب شريط العنوان بالأعلى.',
+              'اختر "السماح" (Allow) للميكروفون.',
+              'أعد النقر على زر الميكروفون.',
+            ],
+          });
+          setStatusMessage('يرجى السماح بالوصول إلى الميكروفون من إعدادات المتصفح');
         } else if (event.error === 'no-speech') {
-          setStatusMessage('لم يتم التقاط أي صوت، يرجى المحاولة مرة أخرى');
+          setStatusMessage('لم يتم التقاط أي صوت، يرجى إعادة المحاولة');
         } else {
-          setStatusMessage('حدث خطأ أثناء التقاط الصوت');
+          setStatusMessage('حدث خطأ أثناء التقاط الصوت: ' + event.error);
         }
       };
 
@@ -90,7 +104,17 @@ export function useSpeechRecognition({ onTranscript, lang = 'ar-DZ' }: UseSpeech
     };
   }, [lang, onTranscript]);
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
+    // 1. Explicitly check and request microphone access via getUserMedia
+    const perm = await requestMicrophoneAccess();
+    if (!perm.granted) {
+      setPermissionError(perm);
+      setStatusMessage(perm.title + ': ' + perm.message);
+      return false;
+    }
+
+    setPermissionError(null);
+
     if (!recognitionRef.current) {
       // Fallback for browsers without speech recognition
       const promptText = window.prompt('الكتابة الصوتية غير مدعومة في هذا المتصفح. يمكنك كتابة النص هنا:');
@@ -99,16 +123,23 @@ export function useSpeechRecognition({ onTranscript, lang = 'ar-DZ' }: UseSpeech
         if (onTranscript) onTranscript(promptText);
         setStatusMessage('✓ تم إدخال النص بنجاح');
       }
-      return;
+      return false;
     }
 
     try {
       setInterimTranscript('');
-      setStatusMessage('🎙️ جاري الاستماع...');
+      setStatusMessage('🎙️ جاري الاستماع بصوت واضح...');
       recognitionRef.current.start();
       setIsListening(true);
-    } catch (err) {
-      console.warn('Recognition already started or error:', err);
+      return true;
+    } catch (err: any) {
+      console.warn('Recognition start error:', err);
+      // If already started, ignore or restart
+      if (err.name === 'InvalidStateError') {
+        setIsListening(true);
+        return true;
+      }
+      return false;
     }
   }, [onTranscript]);
 
@@ -127,15 +158,22 @@ export function useSpeechRecognition({ onTranscript, lang = 'ar-DZ' }: UseSpeech
     setStatusMessage('');
   }, []);
 
+  const clearPermissionError = useCallback(() => {
+    setPermissionError(null);
+  }, []);
+
   return {
     isListening,
     transcript,
     interimTranscript,
     statusMessage,
     isSupported,
+    permissionError,
+    clearPermissionError,
     startListening,
     stopListening,
     resetTranscript,
     setTranscript,
   };
 }
+

@@ -288,24 +288,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 todayAppointments.map((apt) => (
                   <div
                     key={apt.id}
-                    className="flex items-start justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 hover:bg-blue-50/50 dark:hover:bg-slate-800 transition"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 hover:bg-blue-50/50 dark:hover:bg-slate-800 transition"
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
                       <div className="px-2.5 py-1.5 rounded-xl bg-blue-600 text-white font-mono text-xs font-bold shrink-0 mt-0.5">
                         {apt.time}
                       </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{apt.title}</h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white break-words">{apt.title}</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 break-words">
                           مع: <span className="font-semibold text-slate-700 dark:text-slate-200">{apt.personOrEntity}</span> • المكان: {apt.location || 'مكتب المدير'}
                         </p>
                         {apt.notes && (
-                          <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">{apt.notes}</p>
+                          <p className="text-[11px] text-slate-400 mt-1 line-clamp-1 break-words">{apt.notes}</p>
                         )}
                       </div>
                     </div>
                     <span
-                      className={`text-[11px] px-2.5 py-1 rounded-full font-semibold ${
+                      className={`text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full font-semibold self-start sm:self-center shrink-0 ${
                         apt.type === 'parents'
                           ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
                           : apt.type === 'inspection'

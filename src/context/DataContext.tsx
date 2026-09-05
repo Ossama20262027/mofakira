@@ -8,10 +8,14 @@ import {
   ArchiveDocument,
   AppSettings,
   SyncPayload,
+  DocumentTemplate,
+  CensorMessage,
+  CensorSettings,
 } from '../types';
 import { apiClient } from '../services/api';
 import { useAuth } from './AuthContext';
 import { soundAlerts } from '../utils/audioAlerts';
+import { standardOfficialTemplates } from '../data/standardTemplates';
 
 interface ActiveAlert {
   id: string;
@@ -59,10 +63,35 @@ interface DataContextType {
   // Archive mutations
   addArchiveDocument: (doc: Omit<ArchiveDocument, 'id' | 'userId' | 'createdAt'>) => Promise<ArchiveDocument>;
   deleteArchiveDocument: (id: string) => Promise<void>;
+  // Templates (النماذج والوثائق)
+  templates: DocumentTemplate[];
+  addDocumentTemplate: (tpl: Omit<DocumentTemplate, 'id' | 'uploadedAt'>) => Promise<DocumentTemplate>;
+  deleteDocumentTemplate: (id: string) => Promise<void>;
+  // Censor communication (التواصل مع الناظر)
+  censorMessages: CensorMessage[];
+  censorSettings: CensorSettings;
+  sendCensorEmail: (payload: {
+    toEmailType: 'official' | 'personal' | 'both';
+    toEmails: string[];
+    subject: string;
+    content: string;
+    attachedTemplateId?: string;
+    attachedFileName?: string;
+    attachedFileDataUrl?: string;
+  }) => Promise<{ success: boolean; message: string; mailtoUrl: string }>;
+  updateCensorSettings: (newCensor: Partial<CensorSettings>) => Promise<void>;
   // Settings & Sound
   updateSettings: (newSettings: Partial<AppSettings>) => Promise<void>;
   testSound: () => void;
 }
+
+const defaultCensorSettings: CensorSettings = {
+  name: 'الأستاذ بلقاسم العربي (ناظر المتوسطة)',
+  officialEmail: 'censor.cem.zabana@education.gov.dz',
+  personalEmail: 'belkacem.censor@gmail.com',
+  phone: '0555123456',
+  notes: 'المسؤول عن التنسيق البيداغوجي، متابعة جداول التوقيت، مجالس الأقسام ومتابعة غيابات الأساتذة',
+};
 
 const defaultSettings: AppSettings = {
   darkMode: false,
@@ -72,6 +101,7 @@ const defaultSettings: AppSettings = {
   notificationsEnabled: true,
   autoSyncIntervalMinutes: 2,
   academicYear: '2026/2027',
+  censorSettings: defaultCensorSettings,
 };
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -84,6 +114,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [voiceMemos, setVoiceMemos] = useState<VoiceMemo[]>([]);
   const [archives, setArchives] = useState<ArchiveDocument[]>([]);
+  const [templates, setTemplates] = useState<DocumentTemplate[]>(standardOfficialTemplates);
+  const [censorMessages, setCensorMessages] = useState<CensorMessage[]>([]);
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -118,6 +150,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       meetings?: Meeting[];
       voiceMemos?: VoiceMemo[];
       archives?: ArchiveDocument[];
+      templates?: DocumentTemplate[];
+      censorMessages?: CensorMessage[];
       settings?: AppSettings;
     }) => {
       if (!user) return;
@@ -128,13 +162,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         meetings: nextState?.meetings || meetings,
         voiceMemos: nextState?.voiceMemos || voiceMemos,
         archives: nextState?.archives || archives,
+        templates: nextState?.templates || templates,
+        censorMessages: nextState?.censorMessages || censorMessages,
         settings: nextState?.settings || settings,
         lastSyncedAt: new Date().toISOString(),
         userId: user.id,
       };
       apiClient.saveLocalData(dataToSave);
     },
-    [user, appointments, tasks, deadlines, meetings, voiceMemos, archives, settings]
+    [user, appointments, tasks, deadlines, meetings, voiceMemos, archives, templates, censorMessages, settings]
   );
 
   // Load initial data when user logs in
@@ -146,6 +182,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setMeetings([]);
       setVoiceMemos([]);
       setArchives([]);
+      setTemplates(standardOfficialTemplates);
+      setCensorMessages([]);
       return;
     }
 
@@ -158,6 +196,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (cached.meetings) setMeetings(cached.meetings);
       if (cached.voiceMemos) setVoiceMemos(cached.voiceMemos);
       if (cached.archives) setArchives(cached.archives);
+      if (cached.templates && Array.isArray(cached.templates)) {
+        const custom = cached.templates.filter((t: any) => !t.isStandard);
+        setTemplates([...custom, ...standardOfficialTemplates]);
+      }
+      if (cached.censorMessages && Array.isArray(cached.censorMessages)) {
+        setCensorMessages(cached.censorMessages);
+      }
       if (cached.settings) setSettings(cached.settings);
       if (cached.lastSyncedAt) setLastSyncedAt(cached.lastSyncedAt);
     }
@@ -183,6 +228,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (Array.isArray(serverData.meetings)) setMeetings(serverData.meetings);
         if (Array.isArray(serverData.voiceMemos)) setVoiceMemos(serverData.voiceMemos);
         if (Array.isArray(serverData.archives)) setArchives(serverData.archives);
+        if (Array.isArray(serverData.templates)) {
+          const custom = serverData.templates.filter((t: any) => !t.isStandard);
+          setTemplates([...custom, ...standardOfficialTemplates]);
+        }
+        if (Array.isArray(serverData.censorMessages)) setCensorMessages(serverData.censorMessages);
         if (serverData.settings) setSettings((prev) => ({ ...prev, ...serverData.settings }));
         setLastSyncedAt(serverData.lastSyncedAt || new Date().toISOString());
 
@@ -193,6 +243,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           meetings: serverData.meetings,
           voiceMemos: serverData.voiceMemos,
           archives: serverData.archives,
+          templates: serverData.templates,
+          censorMessages: serverData.censorMessages,
           settings: serverData.settings,
         });
       }
@@ -218,6 +270,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         meetings,
         voiceMemos,
         archives,
+        templates,
+        censorMessages,
         settings,
       };
       const res = await apiClient.syncWithServer(payload);
@@ -603,6 +657,99 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Templates mutations
+  const addDocumentTemplate = async (tpl: Omit<DocumentTemplate, 'id' | 'uploadedAt'>): Promise<DocumentTemplate> => {
+    const newTpl: DocumentTemplate = {
+      ...tpl,
+      id: 'tpl-custom-' + Date.now(),
+      uploadedAt: new Date().toISOString(),
+      isStandard: false,
+    };
+    const next = [newTpl, ...templates];
+    setTemplates(next);
+    saveStateLocally({ templates: next });
+    if (navigator.onLine) {
+      apiClient.syncWithServer({ templates: next }).catch(console.warn);
+    }
+    return newTpl;
+  };
+
+  const deleteDocumentTemplate = async (id: string) => {
+    const next = templates.filter((t) => t.id !== id);
+    setTemplates(next);
+    saveStateLocally({ templates: next });
+    if (navigator.onLine) {
+      apiClient.syncWithServer({ templates: next }).catch(console.warn);
+    }
+  };
+
+  // Censor communication mutations
+  const censorSettings = settings.censorSettings || defaultCensorSettings;
+
+  const sendCensorEmail = async (payload: {
+    toEmailType: 'official' | 'personal' | 'both';
+    toEmails: string[];
+    subject: string;
+    content: string;
+    attachedTemplateId?: string;
+    attachedFileName?: string;
+    attachedFileDataUrl?: string;
+  }) => {
+    const newMsg: CensorMessage = {
+      id: 'msg-' + Date.now(),
+      userId: user?.id || 'principal',
+      toEmailType: payload.toEmailType,
+      toEmails: payload.toEmails,
+      subject: payload.subject,
+      content: payload.content,
+      attachedTemplateId: payload.attachedTemplateId,
+      attachedFileName: payload.attachedFileName,
+      attachedFileDataUrl: payload.attachedFileDataUrl,
+      sentAt: new Date().toISOString(),
+      status: 'sent',
+    };
+
+    const next = [newMsg, ...censorMessages];
+    setCensorMessages(next);
+    saveStateLocally({ censorMessages: next });
+
+    let mailtoUrl = `mailto:${payload.toEmails.join(',')}?subject=${encodeURIComponent(payload.subject)}&body=${encodeURIComponent(
+      `${payload.content}\n\n---\nمكتب السيد مدير المتوسطة (${user?.name || 'الأستاذ أمحمد شامخة'})\n${user?.institutionName || 'متوسطة الشهيد زبانة'}` +
+        (payload.attachedFileName ? `\n[مرفق مرتبط: ${payload.attachedFileName}]` : '')
+    )}`;
+
+    if (navigator.onLine) {
+      try {
+        const res = await apiClient.sendCensorEmail(payload);
+        if (res?.mailtoUrl) {
+          mailtoUrl = res.mailtoUrl;
+        }
+      } catch (err) {
+        console.warn('Censor email sync notice:', err);
+      }
+    }
+
+    return {
+      success: true,
+      message: 'تم تسجيل الرسالة وتجهيزها للإرسال إلى السيد الناظر بنجاح',
+      mailtoUrl,
+    };
+  };
+
+  const updateCensorSettings = async (newCensor: Partial<CensorSettings>) => {
+    const updatedCensor: CensorSettings = {
+      ...censorSettings,
+      ...newCensor,
+    };
+    const nextSettings = { ...settings, censorSettings: updatedCensor };
+    setSettings(nextSettings);
+    saveStateLocally({ settings: nextSettings });
+    if (navigator.onLine) {
+      apiClient.syncWithServer({ settings: nextSettings }).catch(console.warn);
+      apiClient.updateCensorSettings(updatedCensor).catch(console.warn);
+    }
+  };
+
   const updateSettings = async (newSettings: Partial<AppSettings>) => {
     const updated = { ...settings, ...newSettings };
     setSettings(updated);
@@ -621,6 +768,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         meetings,
         voiceMemos,
         archives,
+        templates,
+        addDocumentTemplate,
+        deleteDocumentTemplate,
+        censorMessages,
+        censorSettings,
+        sendCensorEmail,
+        updateCensorSettings,
         settings,
         isOnline,
         isSyncing,

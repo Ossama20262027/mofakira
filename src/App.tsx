@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
-import { DataProvider } from './context/DataContext';
+import { DataProvider, useData } from './context/DataContext';
+import { useInteractiveSounds } from './hooks/useInteractiveSounds';
 import { DashboardView } from './pages/DashboardView';
 import { AppointmentsView } from './pages/AppointmentsView';
 import { TasksView } from './pages/TasksView';
@@ -10,18 +11,28 @@ import { ArchiveView } from './pages/ArchiveView';
 import { VoiceMemosView } from './pages/VoiceMemosView';
 import { ReportsView } from './pages/ReportsView';
 import { SettingsView } from './pages/SettingsView';
+import { TemplatesView } from './pages/TemplatesView';
+import { CensorContactView } from './pages/CensorContactView';
+import { DocumentTemplate } from './types';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { VoiceAssistantModal } from './components/VoiceAssistantModal';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
 import { NotificationToast } from './components/NotificationToast';
+import { DesktopSyncModal } from './components/DesktopSyncModal';
 import { Mic, Sparkles } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
+  const { settings } = useData();
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const [isDesktopSyncOpen, setIsDesktopSyncOpen] = useState<boolean>(false);
+  const [attachedTemplateForCensor, setAttachedTemplateForCensor] = useState<DocumentTemplate | null>(null);
+
+  // Activate subtle interactive hover tick and tap sounds on all buttons and cards
+  useInteractiveSounds(settings.soundEnabled);
 
   // Quick modals triggers
   const [openModalFlags, setOpenModalFlags] = useState<{
@@ -70,6 +81,21 @@ const MainAppContent: React.FC = () => {
         return <DeadlinesView initialOpenModal={!!openModalFlags.deadline} />;
       case 'meetings':
         return <MeetingsView initialOpenModal={!!openModalFlags.meeting} />;
+      case 'templates':
+        return (
+          <TemplatesView
+            onSelectTemplateForCensor={(tpl) => setAttachedTemplateForCensor(tpl)}
+            onNavigateToCensor={() => setCurrentView('censor')}
+          />
+        );
+      case 'censor':
+        return (
+          <CensorContactView
+            initialAttachedTemplate={attachedTemplateForCensor}
+            onClearInitialTemplate={() => setAttachedTemplateForCensor(null)}
+            onNavigateToTemplates={() => setCurrentView('templates')}
+          />
+        );
       case 'archives':
         return <ArchiveView />;
       case 'voice-memos':
@@ -99,7 +125,7 @@ const MainAppContent: React.FC = () => {
       <NotificationToast />
 
       {/* Main Layout Container */}
-      <div className="flex flex-1 relative min-h-screen">
+      <div className="flex flex-1 relative min-h-screen w-full max-w-full overflow-x-hidden">
         {/* Sidebar */}
         <Sidebar
           currentView={currentView}
@@ -111,15 +137,17 @@ const MainAppContent: React.FC = () => {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
+          onOpenDesktopSync={() => setIsDesktopSyncOpen(true)}
         />
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 lg:mr-72 w-full max-w-full overflow-x-hidden">
           {/* Header */}
           <Header
             onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
             onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
             onOpenSearch={() => setIsSearchOpen(true)}
+            onOpenDesktopSync={() => setIsDesktopSyncOpen(true)}
             onSelectView={(view) => {
               setOpenModalFlags({});
               setCurrentView(view);
@@ -127,7 +155,7 @@ const MainAppContent: React.FC = () => {
           />
 
           {/* Page Body */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          <main className="flex-1 p-3 sm:p-5 lg:p-8 max-w-7xl w-full mx-auto overflow-x-hidden">
             {renderCurrentView()}
           </main>
         </div>
@@ -148,6 +176,12 @@ const MainAppContent: React.FC = () => {
         <span className="hidden sm:inline">المساعد الذكي</span>
         <Sparkles className="w-3.5 h-3.5 text-amber-300" />
       </button>
+
+      {/* Desktop Sync Modal */}
+      <DesktopSyncModal
+        isOpen={isDesktopSyncOpen}
+        onClose={() => setIsDesktopSyncOpen(false)}
+      />
 
       {/* Voice Assistant Modal */}
       <VoiceAssistantModal

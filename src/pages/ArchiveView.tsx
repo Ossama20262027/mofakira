@@ -15,6 +15,7 @@ import {
   File,
   Filter,
 } from 'lucide-react';
+import { FileUploadInput, UploadedFileMeta } from '../components/FileUploadInput';
 
 export const ArchiveView: React.FC = () => {
   const { archives, addArchiveDocument, deleteArchiveDocument } = useData();
@@ -30,7 +31,7 @@ export const ArchiveView: React.FC = () => {
   const [academicYear, setAcademicYear] = useState('2026/2027');
   const [tagsInput, setTagsInput] = useState('منشور، رسمي');
   const [notes, setNotes] = useState('');
-  const [fileData, setFileData] = useState<{ name: string; size: string; type: string; url?: string } | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<UploadedFileMeta | null>(null);
 
   const categories = [
     'مناشير وقرارات وزارية',
@@ -41,26 +42,6 @@ export const ArchiveView: React.FC = () => {
     'ملفات الموظفين والأساتذة',
     'أخرى',
   ];
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      setFileData({
-        name: file.name,
-        size: (file.size / 1024).toFixed(1) + ' KB',
-        type: file.type || 'application/pdf',
-        url: base64,
-      });
-      if (!title) {
-        setTitle(file.name.replace(/\.[^/.]+$/, ''));
-      }
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,17 +59,17 @@ export const ArchiveView: React.FC = () => {
       academicYear,
       tags,
       notes,
-      fileName: fileData?.name || 'وثيقة_إدارية.pdf',
-      fileSize: fileData?.size || '120 KB',
-      fileType: fileData?.type || 'application/pdf',
-      fileUrl: fileData?.url,
+      fileName: uploadedFile?.name || 'وثيقة_إدارية.pdf',
+      fileSize: uploadedFile?.sizeFormatted || '120 KB',
+      fileType: uploadedFile?.mimeType || 'application/pdf',
+      fileUrl: uploadedFile?.dataUrl,
     });
 
     setIsModalOpen(false);
     setTitle('');
     setReferenceNumber('');
     setNotes('');
-    setFileData(null);
+    setUploadedFile(null);
   };
 
   const filteredArchives = useMemo(() => {
@@ -131,9 +112,9 @@ export const ArchiveView: React.FC = () => {
       </div>
 
       {/* Toolbar: Search + Category Filter */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
+      <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
         {/* Search Input */}
-        <div className="relative flex-1 min-w-[240px]">
+        <div className="relative w-full sm:flex-1">
           <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -145,7 +126,7 @@ export const ArchiveView: React.FC = () => {
         </div>
 
         {/* Category Filter */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <Filter className="w-4 h-4 text-slate-400" />
           <select
             value={selectedCategory}
@@ -326,27 +307,19 @@ export const ArchiveView: React.FC = () => {
                 </div>
               </div>
 
-              {/* File Attachment Box */}
+              {/* File Attachment Box using FileUploadInput */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  الملف المرفق (PDF، Word، أو صورة الوثيقة)
-                </label>
-                <label className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 bg-slate-50 dark:bg-slate-800/60 cursor-pointer transition">
-                  <UploadCloud className="w-8 h-8 text-indigo-500 mb-2" />
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
-                    {fileData ? fileData.name : 'انقر لاختيار ملف من جهازك أو اسحبه هنا'}
-                  </span>
-                  {fileData && (
-                    <span className="text-[11px] text-emerald-600 font-bold mt-1">
-                      الحجم: {fileData.size}
-                    </span>
-                  )}
-                  <input
-                    type="file"
-                    className="hidden"
-                    onChange={handleFileUpload}
-                  />
-                </label>
+                <FileUploadInput
+                  value={uploadedFile}
+                  onChange={(f) => {
+                    setUploadedFile(f);
+                    if (f && !title) {
+                      setTitle(f.name.replace(/\.[^/.]+$/, ''));
+                    }
+                  }}
+                  label="الملف المرفق (PDF، Word، أو صورة من الماسح الضوئي/USB)"
+                  helpText="اختر ملفاً من الحاسوب أو وحدة تخزين USB أو الماسح الضوئي"
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

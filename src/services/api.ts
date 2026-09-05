@@ -146,6 +146,55 @@ export const apiClient = {
     });
   },
 
+  // Censor Communication
+  async sendCensorEmail(payload: {
+    toEmailType: 'official' | 'personal' | 'both';
+    toEmails: string[];
+    subject: string;
+    content: string;
+    attachedTemplateId?: string;
+    attachedFileName?: string;
+    attachedFileDataUrl?: string;
+  }): Promise<{ success: boolean; message: string; data: any; mailtoUrl: string }> {
+    return await this.request('/api/censor/send-email', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getCensorMessages(): Promise<{ messages: any[]; censorSettings: any }> {
+    return await this.request('/api/censor/messages');
+  },
+
+  async updateCensorSettings(settings: {
+    name: string;
+    officialEmail: string;
+    personalEmail: string;
+    phone?: string;
+    notes?: string;
+  }): Promise<{ success: boolean; message: string; censorSettings: any }> {
+    return await this.request('/api/censor/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    });
+  },
+
+  // Desktop Sync
+  async getDesktopSyncStatus(): Promise<any> {
+    return await this.request('/api/desktop-sync/status');
+  },
+
+  async getDesktopSyncToken(): Promise<{ apiKey: string; syncUrl: string; userName: string; institutionName: string }> {
+    return await this.request('/api/desktop-sync/token');
+  },
+
+  async syncBidirectionalDesktop(localChanges: any): Promise<any> {
+    return await this.request('/api/desktop-sync/sync-bidirectional', {
+      method: 'POST',
+      body: JSON.stringify({ localChanges }),
+    });
+  },
+
   // Assistant & Voice NLP
   async queryAssistant(query: string): Promise<{ response: string; proposedAction?: any }> {
     return await this.request('/api/assistant', {

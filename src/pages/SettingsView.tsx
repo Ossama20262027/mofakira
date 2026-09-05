@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { playAdminChime } from '../utils/audioAlerts';
+import { soundAlerts, playAdminChime } from '../utils/audioAlerts';
 import {
   Settings as SettingsIcon,
   User,
   School,
   Bell,
   Volume2,
+  VolumeX,
   Database,
   Download,
   Upload,
@@ -15,12 +16,26 @@ import {
   Check,
   Shield,
   Smartphone,
+  Mail,
+  Building,
+  AtSign,
 } from 'lucide-react';
 import { PWAInstallButton } from '../components/PWAInstallButton';
 
 export const SettingsView: React.FC = () => {
   const { user, updateProfile } = useAuth();
-  const { syncNow, isSyncing, appointments, tasks, meetings, deadlines, archives, voiceMemos } = useData();
+  const {
+    syncNow,
+    isSyncing,
+    appointments,
+    tasks,
+    meetings,
+    deadlines,
+    archives,
+    voiceMemos,
+    censorSettings,
+    updateCensorSettings,
+  } = useData();
 
   const [fullName, setFullName] = useState(user?.name || 'الأستاذ أمحمد شامخة');
   const [schoolName, setSchoolName] = useState(user?.institutionName || 'متوسطة الشهيد زبانة');
@@ -29,7 +44,14 @@ export const SettingsView: React.FC = () => {
   const [phone, setPhone] = useState(user?.phone || '');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  React.useEffect(() => {
+  // Censor Settings state
+  const [censorName, setCensorName] = useState(censorSettings?.name || 'الأستاذ بلقاسم العربي (ناظر المتوسطة)');
+  const [censorOfficialEmail, setCensorOfficialEmail] = useState(censorSettings?.officialEmail || 'censor.cem.zabana@education.gov.dz');
+  const [censorPersonalEmail, setCensorPersonalEmail] = useState(censorSettings?.personalEmail || 'belkacem.censor@gmail.com');
+  const [censorPhone, setCensorPhone] = useState(censorSettings?.phone || '0555123456');
+  const [censorSavedSuccess, setCensorSavedSuccess] = useState(false);
+
+  useEffect(() => {
     if (user) {
       if (user.name) setFullName(user.name);
       if (user.institutionName) setSchoolName(user.institutionName);
@@ -38,6 +60,15 @@ export const SettingsView: React.FC = () => {
       if (user.phone !== undefined) setPhone(user.phone);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (censorSettings) {
+      if (censorSettings.name) setCensorName(censorSettings.name);
+      if (censorSettings.officialEmail) setCensorOfficialEmail(censorSettings.officialEmail);
+      if (censorSettings.personalEmail) setCensorPersonalEmail(censorSettings.personalEmail);
+      if (censorSettings.phone) setCensorPhone(censorSettings.phone);
+    }
+  }, [censorSettings]);
 
   // Settings
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -191,33 +222,162 @@ export const SettingsView: React.FC = () => {
         </div>
       </form>
 
+      {/* Censor Contact Settings Card */}
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          await updateCensorSettings({
+            name: censorName.trim(),
+            officialEmail: censorOfficialEmail.trim(),
+            personalEmail: censorPersonalEmail.trim(),
+            phone: censorPhone.trim(),
+          });
+          setCensorSavedSuccess(true);
+          setTimeout(() => setCensorSavedSuccess(false), 2500);
+        }}
+        className="p-6 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5"
+      >
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 flex items-center justify-center">
+              <Mail className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                بيانات التواصل مع السيد ناظر المتوسطة
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                تُحفظ عناوين البريد الإلكتروني مرة واحدة وتُستخدم تلقائياً عند إرسال المراسلات والوثائق
+              </p>
+            </div>
+          </div>
+          {censorSavedSuccess && (
+            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full animate-in fade-in">
+              <Check className="w-3.5 h-3.5" />
+              <span>تم حفظ بيانات الناظر</span>
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              اسم وصفة الناظر *
+            </label>
+            <input
+              type="text"
+              value={censorName}
+              onChange={(e) => setCensorName(e.target.value)}
+              placeholder="الأستاذ بلقاسم العربي"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              رقم هاتف الناظر
+            </label>
+            <input
+              type="tel"
+              value={censorPhone}
+              onChange={(e) => setCensorPhone(e.target.value)}
+              placeholder="0555123456"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+              <Building className="w-3.5 h-3.5 text-indigo-500" />
+              <span>البريد الإلكتروني الرسمي الخاص بالمؤسسة *</span>
+            </label>
+            <input
+              type="email"
+              value={censorOfficialEmail}
+              onChange={(e) => setCensorOfficialEmail(e.target.value)}
+              placeholder="censor.cem.zabana@education.gov.dz"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 font-mono"
+              required
+            />
+            <p className="text-[10px] text-slate-400 mt-1">البريد المعتمد للمراسلات الإدارية الرسمية</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
+              <AtSign className="w-3.5 h-3.5 text-blue-500" />
+              <span>البريد الإلكتروني الشخصي للناظر *</span>
+            </label>
+            <input
+              type="email"
+              value={censorPersonalEmail}
+              onChange={(e) => setCensorPersonalEmail(e.target.value)}
+              placeholder="belkacem.censor@gmail.com"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 font-mono"
+              required
+            />
+            <p className="text-[10px] text-slate-400 mt-1">البريد الاحتياطي للمراسلات العاجلة والإشعارات</p>
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <button
+            type="submit"
+            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition cursor-pointer"
+          >
+            حفظ إعدادات بريد الناظر
+          </button>
+        </div>
+      </form>
+
       {/* Audio & Notification Settings */}
       <div className="p-6 rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <Bell className="w-5 h-5 text-amber-500" />
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-            التنبيهات الإدارية والصوتية
+            صوت المنبه والتنبيهات الإدارية (Alarm Audio Alerts)
           </h3>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
           <div>
             <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-              نغمة التنبيه الإداري (Web Audio API)
+              صوت تنبيه المنبه القوي (Web Audio API)
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              إصدار رنين احترافي لتنبيه المدير عند حلول موعد أو اقتراب أجل إداري
+              نغمات تنبيه واضحة وعالية النبرة تحاكي صوت المنبه عند اقتراب المواعيد أو حلول الآجال، لضمان لفت انتباه المدير دون تفويت أي التزام.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={handleTestChime}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-semibold hover:bg-amber-100 transition cursor-pointer"
+              onClick={() => soundAlerts.playAlarm()}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition cursor-pointer shadow-sm active:scale-95"
+              title="تشغيل صوت المنبه الإلكتروني القوي"
             >
               <Volume2 className="w-4 h-4" />
-              <span>تجربة صوت الرنين 🔔</span>
+              <span>تجربة صوت المنبه ⏰</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => soundAlerts.playAlarmBell()}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold hover:bg-indigo-100 transition cursor-pointer"
+              title="تشغيل رنين الجرس المدرسي المتكرر"
+            >
+              <Bell className="w-4 h-4" />
+              <span>جرس المنبه المدرسي 🔔</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => soundAlerts.stopAlarm()}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer"
+              title="إيقاف صوت المنبه فوراً"
+            >
+              <VolumeX className="w-4 h-4" />
+              <span>إيقاف الصوت ⏹️</span>
             </button>
           </div>
         </div>

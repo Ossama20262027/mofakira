@@ -255,11 +255,11 @@ export const TasksView: React.FC<TasksViewProps> = ({ initialOpenModal = false }
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
                     {/* Checkbox */}
                     <button
                       onClick={() => toggleTaskStatus(task.id)}
-                      className="mt-1 text-slate-400 hover:text-emerald-600 transition cursor-pointer"
+                      className="mt-1 text-slate-400 hover:text-emerald-600 transition cursor-pointer shrink-0"
                       title={isCompleted ? 'إعادة للمهام الجارية' : 'تعليم كمكتمل'}
                     >
                       <div
@@ -273,36 +273,36 @@ export const TasksView: React.FC<TasksViewProps> = ({ initialOpenModal = false }
                       </div>
                     </button>
 
-                    <div className="space-y-1">
+                    <div className="space-y-1 min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3
-                          className={`text-base font-bold text-slate-900 dark:text-white ${
+                          className={`text-sm sm:text-base font-bold text-slate-900 dark:text-white break-words ${
                             isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : ''
                           }`}
                         >
                           {task.title}
                         </h3>
                         <span
-                          className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold ${
+                          className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold shrink-0 ${
                             priorityLabels[task.priority].color
                           }`}
                         >
                           {priorityLabels[task.priority].text}
                         </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0">
                           {statusLabels[task.status]}
                         </span>
                       </div>
 
                       {task.description && (
-                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed break-words">
                           {task.description}
                         </p>
                       )}
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 pt-1">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-500 dark:text-slate-400 pt-1">
                         <span className="flex items-center gap-1">
-                          <User className="w-3.5 h-3.5 text-blue-600" />
+                          <User className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                           <span>المكلف: {task.responsiblePerson || 'المدير'}</span>
                         </span>
                         <span>•</span>
@@ -311,7 +311,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ initialOpenModal = false }
                             isOverdue ? 'text-red-600 dark:text-red-400 font-bold' : ''
                           }`}
                         >
-                          <Calendar className="w-3.5 h-3.5" />
+                          <Calendar className="w-3.5 h-3.5 shrink-0" />
                           <span>الأجل: {task.dueDate}</span>
                           {isOverdue && <span className="text-[10px] bg-red-100 dark:bg-red-950 px-1.5 py-0.5 rounded">(متأخر)</span>}
                         </span>
@@ -320,7 +320,7 @@ export const TasksView: React.FC<TasksViewProps> = ({ initialOpenModal = false }
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 w-full sm:w-auto justify-end">
                     <button
                       onClick={() => openEditModal(task)}
                       className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer"

@@ -201,9 +201,9 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({ initialOpenM
       </div>
 
       {/* Toolbar: Views + Filters + Date Navigator */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
+      <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
         {/* View Switchers */}
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-900/60 text-xs font-semibold">
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-900/60 text-xs font-semibold overflow-x-auto no-scrollbar w-full sm:w-auto">
           {[
             { id: 'daily', label: 'يومي' },
             { id: 'weekly', label: 'أسبوعي' },
@@ -214,7 +214,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({ initialOpenM
             <button
               key={mode.id}
               onClick={() => setViewMode(mode.id as any)}
-              className={`px-3 py-1.5 rounded-lg transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg transition cursor-pointer whitespace-nowrap ${
                 viewMode === mode.id
                   ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -225,48 +225,51 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({ initialOpenM
           ))}
         </div>
 
-        {/* Date Navigator */}
-        {viewMode !== 'list' && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => changeDateBy(1)}
-              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
-              title="اليوم التالي"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold text-slate-800 dark:text-white"
-            />
-            <button
-              onClick={() => changeDateBy(-1)}
-              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
-              title="اليوم السابق"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        {/* Date Navigator & Type Filter Container */}
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          {/* Date Navigator */}
+          {viewMode !== 'list' && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => changeDateBy(1)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
+                title="اليوم التالي"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold text-slate-800 dark:text-white"
+              />
+              <button
+                onClick={() => changeDateBy(-1)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
+                title="اليوم السابق"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
-        {/* Type Filter */}
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-400" />
-          <select
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="text-xs px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-700 dark:text-slate-200"
-          >
-            <option value="all">جميع الأنواع</option>
-            <option value="parents">استقبال أولياء</option>
-            <option value="inspection">زيارات تفتيشية</option>
-            <option value="inspector_meeting">لقاء مع مفتش</option>
-            <option value="administrative">إداري</option>
-            <option value="external">موعد خارجي</option>
-            <option value="directorate">مديرية التربية</option>
-          </select>
+          {/* Type Filter */}
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-slate-400" />
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="text-xs px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium text-slate-700 dark:text-slate-200"
+            >
+              <option value="all">جميع الأنواع</option>
+              <option value="parents">استقبال أولياء</option>
+              <option value="inspection">زيارات تفتيشية</option>
+              <option value="inspector_meeting">لقاء مع مفتش</option>
+              <option value="administrative">إداري</option>
+              <option value="external">موعد خارجي</option>
+              <option value="directorate">مديرية التربية</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -300,19 +303,19 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({ initialOpenM
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   {/* Right side: Time Badge + Title + Details */}
-                  <div className="flex items-start gap-3">
-                    <div className="flex flex-col items-center justify-center w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/60 font-mono font-bold shrink-0">
-                      <span className="text-sm">{apt.time}</span>
-                      <span className="text-[10px] font-normal text-slate-500">{apt.durationMinutes} د</span>
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <div className="flex flex-col items-center justify-center w-12 sm:w-14 h-12 sm:h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/60 font-mono font-bold shrink-0">
+                      <span className="text-xs sm:text-sm">{apt.time}</span>
+                      <span className="text-[9px] sm:text-[10px] font-normal text-slate-500">{apt.durationMinutes} د</span>
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className={`text-base font-bold text-slate-900 dark:text-white ${isCompleted ? 'line-through' : ''}`}>
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className={`text-sm sm:text-base font-bold text-slate-900 dark:text-white break-words ${isCompleted ? 'line-through' : ''}`}>
                           {apt.title}
                         </h3>
                         <span
-                          className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${
+                          className={`text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full font-semibold shrink-0 ${
                             apt.type === 'parents'
                               ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
                               : apt.type === 'inspection'
@@ -324,30 +327,30 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({ initialOpenM
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-500 dark:text-slate-400">
                         <span className="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
-                          <User className="w-3.5 h-3.5 text-blue-600" />
+                          <User className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                           <span>مع: {apt.personOrEntity}</span>
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
-                          <CalendarIcon className="w-3.5 h-3.5" />
+                          <CalendarIcon className="w-3.5 h-3.5 shrink-0" />
                           <span>{apt.date}</span>
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5" />
+                          <MapPin className="w-3.5 h-3.5 shrink-0" />
                           <span>{apt.location || 'مكتب المدير'}</span>
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-1 text-slate-400">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>تنبيه قبل {apt.reminderMinutes || 15} دقيقة</span>
+                          <Clock className="w-3.5 h-3.5 shrink-0" />
+                          <span>تنبيه قبل {apt.reminderMinutes || 15} د</span>
                         </span>
                       </div>
 
                       {apt.notes && (
-                        <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl mt-2 leading-relaxed">
+                        <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl mt-2 leading-relaxed break-words">
                           {apt.notes}
                         </p>
                       )}
@@ -355,7 +358,7 @@ export const AppointmentsView: React.FC<AppointmentsViewProps> = ({ initialOpenM
                   </div>
 
                   {/* Left Side: Actions */}
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 w-full sm:w-auto justify-end">
                     <button
                       onClick={() =>
                         updateAppointment(apt.id, {

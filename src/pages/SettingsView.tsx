@@ -22,12 +22,22 @@ export const SettingsView: React.FC = () => {
   const { user, updateProfile } = useAuth();
   const { syncNow, isSyncing, appointments, tasks, meetings, deadlines, archives, voiceMemos } = useData();
 
-  const [fullName, setFullName] = useState(user?.fullName || 'الأستاذ شامخة أمحمد');
-  const [schoolName, setSchoolName] = useState(user?.schoolName || 'متوسطة النجاح');
+  const [fullName, setFullName] = useState(user?.name || 'الأستاذ أمحمد شامخة');
+  const [schoolName, setSchoolName] = useState(user?.institutionName || 'متوسطة الشهيد زبانة');
   const [academicYear, setAcademicYear] = useState(user?.academicYear || '2026/2027');
   const [wilaya, setWilaya] = useState(user?.wilaya || 'الجزائر');
   const [phone, setPhone] = useState(user?.phone || '');
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  React.useEffect(() => {
+    if (user) {
+      if (user.name) setFullName(user.name);
+      if (user.institutionName) setSchoolName(user.institutionName);
+      if (user.academicYear) setAcademicYear(user.academicYear);
+      if (user.wilaya) setWilaya(user.wilaya);
+      if (user.phone !== undefined) setPhone(user.phone);
+    }
+  }, [user]);
 
   // Settings
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -35,8 +45,8 @@ export const SettingsView: React.FC = () => {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateProfile({
-      fullName,
-      schoolName,
+      name: fullName,
+      institutionName: schoolName,
       academicYear,
       wilaya,
       phone,
@@ -49,8 +59,8 @@ export const SettingsView: React.FC = () => {
     const backupData = {
       version: '1.0',
       exportedAt: new Date().toISOString(),
-      principal: user?.fullName,
-      school: user?.schoolName,
+      principal: user?.name,
+      school: user?.institutionName,
       appointments,
       tasks,
       meetings,
@@ -64,7 +74,7 @@ export const SettingsView: React.FC = () => {
     downloadAnchor.setAttribute('href', dataStr);
     downloadAnchor.setAttribute(
       'download',
-      `نسخة_احتياطية_${user?.schoolName || 'المتوسطة'}_${new Date().toISOString().split('T')[0]}.json`
+      `نسخة_احتياطية_${user?.institutionName || 'المتوسطة'}_${new Date().toISOString().split('T')[0]}.json`
     );
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();

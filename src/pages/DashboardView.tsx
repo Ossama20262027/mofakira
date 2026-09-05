@@ -73,7 +73,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span>السنة الدراسية: {user?.academicYear || '2026/2027'}</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight">
-              أهلاً بك، أستاذ {user?.name || 'المدير'}
+              أهلاً بك، {user?.name || 'الأستاذ أمحمد شامخة'}
             </h2>
             <p className="text-xs sm:text-sm text-blue-200 max-w-xl leading-relaxed">
               مساعدك الإداري متزامن وجاهز. لديك اليوم{' '}

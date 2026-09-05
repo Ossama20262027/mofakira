@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
-import { AuthPage } from './pages/AuthPage';
 import { DashboardView } from './pages/DashboardView';
 import { AppointmentsView } from './pages/AppointmentsView';
 import { TasksView } from './pages/TasksView';
@@ -19,8 +18,6 @@ import { NotificationToast } from './components/NotificationToast';
 import { Mic, Sparkles } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
-  const { isAuthenticated } = useAuth();
-
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState<boolean>(false);
@@ -45,10 +42,6 @@ const MainAppContent: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  if (!isAuthenticated) {
-    return <AuthPage />;
-  }
 
   const navigateToWithModal = (view: string, modalKey: 'appointment' | 'task' | 'deadline' | 'meeting') => {
     setOpenModalFlags({ [modalKey]: true });

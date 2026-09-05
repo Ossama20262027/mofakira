@@ -53,6 +53,14 @@ export const apiClient = {
   },
 
   // Auth methods
+  async quickAccess(): Promise<{ token: string; user: UserProfile }> {
+    const res = await this.request('/api/auth/quick-access', {
+      method: 'POST',
+    });
+    this.setToken(res.token);
+    return res;
+  },
+
   async login(email: string, password: string): Promise<{ token: string; user: UserProfile }> {
     const res = await this.request('/api/auth/login', {
       method: 'POST',

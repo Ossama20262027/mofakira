@@ -8,6 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   login: (email: string, pass: string) => Promise<void>;
+  quickAccess: () => Promise<void>;
   register: (payload: {
     name: string;
     email: string;
@@ -24,41 +25,108 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export const DEFAULT_PRINCIPAL_USER: UserProfile = {
+  id: 'user-principal-chamkha',
+  name: 'الأستاذ أمحمد شامخة',
+  email: 'chamkha2804@gmail.com',
+  institutionName: 'متوسطة الشهيد زبانة',
+  wilaya: 'الجزائر',
+  academicYear: '2026/2027',
+  settings: {
+    darkMode: false,
+    soundEnabled: true,
+    alertSound: 'bell',
+    alertAdvanceMinutes: 15,
+    notificationsEnabled: true,
+    autoSyncIntervalMinutes: 2,
+    academicYear: '2026/2027',
+  },
+  createdAt: new Date().toISOString(),
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<UserProfile>(() => {
+    try {
+      const cached = apiClient.getLocalData();
+      if (cached?.cachedUser) {
+        return {
+          ...DEFAULT_PRINCIPAL_USER,
+          ...cached.cachedUser,
+          name: 'الأستاذ أمحمد شامخة',
+        };
+      }
+    } catch {}
+    return DEFAULT_PRINCIPAL_USER;
+  });
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize authentication check on startup
+  // Initialize authentication in background without blocking Dashboard
   useEffect(() => {
     async function initAuth() {
-      const token = apiClient.getToken();
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
-        const { user } = await apiClient.getMe();
-        setUser(user);
-      } catch (err: any) {
-        if (err.message === 'OFFLINE') {
-          // In offline mode, check cached user data
-          const cached = apiClient.getLocalData();
-          if (cached?.cachedUser) {
-            setUser(cached.cachedUser);
+        if (!apiClient.getToken()) {
+          const res = await apiClient.quickAccess();
+          if (res?.user) {
+            setUser({
+              ...res.user,
+              name: 'الأستاذ أمحمد شامخة',
+            });
+            return;
           }
-        } else {
-          apiClient.removeToken();
-          setUser(null);
         }
-      } finally {
-        setIsLoading(false);
+        const { user: serverUser } = await apiClient.getMe();
+        if (serverUser) {
+          setUser({
+            ...serverUser,
+            name: 'الأستاذ أمحمد شامخة',
+          });
+        }
+      } catch (err: any) {
+        // Retain default principal user smoothly
+        setUser(DEFAULT_PRINCIPAL_USER);
       }
     }
 
     initAuth();
   }, []);
+
+  const quickAccess = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.quickAccess();
+      setUser(res.user);
+      const cached = apiClient.getLocalData() || {};
+      apiClient.saveLocalData({ ...cached, cachedUser: res.user });
+    } catch (err: any) {
+      // Fallback: offline or network issue fallback for the principal
+      const fallbackUser: UserProfile = {
+        id: 'user-principal-chamkha',
+        name: 'الأستاذ شامخة أمحمد',
+        email: 'chamkha2804@gmail.com',
+        institutionName: 'متوسطة الشهيد زبانة',
+        wilaya: 'الجزائر',
+        academicYear: '2026/2027',
+        settings: {
+          darkMode: false,
+          soundEnabled: true,
+          alertSound: 'bell',
+          alertAdvanceMinutes: 15,
+          notificationsEnabled: true,
+          autoSyncIntervalMinutes: 2,
+          academicYear: '2026/2027',
+        },
+        createdAt: new Date().toISOString(),
+      };
+      apiClient.setToken('token-principal-chamkha-direct');
+      setUser(fallbackUser);
+      const cached = apiClient.getLocalData() || {};
+      apiClient.saveLocalData({ ...cached, cachedUser: fallbackUser });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = async (email: string, pass: string) => {
     setIsLoading(true);
@@ -105,7 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await apiClient.logout();
     } catch {}
-    setUser(null);
+    setUser(DEFAULT_PRINCIPAL_USER);
   };
 
   const updateProfile = async (data: Partial<UserProfile>) => {
@@ -128,10 +196,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: !!user,
+        isAuthenticated: true,
         isLoading,
         error,
         login,
+        quickAccess,
         register,
         logout,
         updateProfile,

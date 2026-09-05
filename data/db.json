@@ -1,0 +1,285 @@
+{
+  "users": {
+    "user-principal-chamkha": {
+      "id": "user-principal-chamkha",
+      "name": "الأستاذ أمحمد شامخة",
+      "email": "chamkha2804@gmail.com",
+      "passwordHash": "6accb34e7cf86585770b10584d615e581e71a96674dc9db7003f87c5173b5cabd8b0fce6fd8901bfe928d5ee88a586b8c57ebc359b8b4b07d9a69a20c237dde5",
+      "salt": "66abb9fd4932fc071ba797b88ff6cde5",
+      "institutionName": "متوسطة الشهيد زبانة",
+      "wilaya": "الجزائر",
+      "academicYear": "2026/2027",
+      "settings": {
+        "darkMode": false,
+        "soundEnabled": true,
+        "alertSound": "bell",
+        "alertAdvanceMinutes": 15,
+        "notificationsEnabled": true,
+        "autoSyncIntervalMinutes": 2,
+        "academicYear": "2026/2027"
+      },
+      "createdAt": "2026-09-05T15:45:12.789Z"
+    }
+  },
+  "tokens": {
+    "f1b78bf99acf678fada1bc009c3db9f9729cca53bcb67b083bb46d2e152979a6": {
+      "userId": "user-principal-chamkha",
+      "expiresAt": 1791217206531
+    },
+    "bb204ff70216cfab06f9aabed36937bee1297d7d0572d436ebd752594b39769c": {
+      "userId": "user-principal-chamkha",
+      "expiresAt": 1791217210227
+    },
+    "3ce7cfed22d687e7ca6e58ea964aea009727df51b617650bf35d148ad6bcd774": {
+      "userId": "user-principal-chamkha",
+      "expiresAt": 1791217213030
+    }
+  },
+  "resetCodes": {},
+  "userStores": {
+    "user-principal-chamkha": {
+      "appointments": [
+        {
+          "id": "apt-1",
+          "userId": "user-principal-chamkha",
+          "title": "استقبال ولي التلميذ (بن علي سفيان - 3م4)",
+          "date": "2026-09-05",
+          "time": "10:00",
+          "durationMinutes": 30,
+          "location": "مكتب المدير",
+          "personOrEntity": "السيد بن علي (ولي أمر)",
+          "type": "parent_reception",
+          "priority": "medium",
+          "notes": "مناقشة الانضباط والغيابات المتكررة",
+          "recurrence": "none",
+          "reminderMinutes": 15,
+          "status": "scheduled",
+          "createdAt": "2026-09-05T15:45:12.790Z",
+          "updatedAt": "2026-09-05T15:45:12.790Z"
+        },
+        {
+          "id": "apt-2",
+          "userId": "user-principal-chamkha",
+          "title": "جلسة عمل مع الناظر والمستشار الرئيسي للتربية",
+          "date": "2026-09-05",
+          "time": "11:30",
+          "durationMinutes": 45,
+          "location": "مكتب المدير",
+          "personOrEntity": "السيد الناظر + مستشار التربية",
+          "type": "administrative",
+          "priority": "high",
+          "notes": "مراجعة جدول الحراسة وتوزيع بطاقات الدخول",
+          "recurrence": "weekly",
+          "reminderMinutes": 15,
+          "status": "scheduled",
+          "createdAt": "2026-09-05T15:45:12.790Z",
+          "updatedAt": "2026-09-05T15:45:12.790Z"
+        },
+        {
+          "id": "apt-3",
+          "userId": "user-principal-chamkha",
+          "title": "اجتماع تنسيقي مع أساتذة مادة الرياضيات",
+          "date": "2026-09-06",
+          "time": "09:00",
+          "durationMinutes": 60,
+          "location": "قاعة الاجتماعات",
+          "personOrEntity": "طاقم أساتذة الرياضيات",
+          "type": "teacher",
+          "priority": "medium",
+          "notes": "متابعة التقدم في المنهاج الدراسي للفصل الأول",
+          "recurrence": "none",
+          "reminderMinutes": 30,
+          "status": "scheduled",
+          "createdAt": "2026-09-05T15:45:12.790Z",
+          "updatedAt": "2026-09-05T15:45:12.790Z"
+        }
+      ],
+      "tasks": [
+        {
+          "id": "task-1",
+          "userId": "user-principal-chamkha",
+          "title": "إعداد تقرير الدخول المدرسي وإرساله لمصلحة التمدرس",
+          "description": "حصر التعداد النهائي للتلاميذ، الأفواج التربوية، وحالة التجهيزات",
+          "startDate": "2026-09-05",
+          "dueDate": "2026-09-08",
+          "priority": "urgent",
+          "status": "in_progress",
+          "responsiblePerson": "المدير بالتعاون مع أمانة المؤسسة",
+          "notes": "التأكيد على ملء استمارة الإحصاء الرسمية",
+          "createdAt": "2026-09-05T15:45:12.790Z",
+          "updatedAt": "2026-09-05T15:45:12.790Z"
+        },
+        {
+          "id": "task-2",
+          "userId": "user-principal-chamkha",
+          "title": "مراجعة محضر مجلس التعليم للفصل الأول",
+          "description": "التوقيع والمصادقة على التوصيات التربوية",
+          "startDate": "2026-09-05",
+          "dueDate": "2026-09-06",
+          "priority": "high",
+          "status": "not_started",
+          "responsiblePerson": "المدير",
+          "createdAt": "2026-09-05T15:45:12.790Z",
+          "updatedAt": "2026-09-05T15:45:12.790Z"
+        },
+        {
+          "id": "task-3",
+          "userId": "user-principal-chamkha",
+          "title": "تأكيد طلبيات المطعم المدرسي والكتب المدرسية",
+          "description": "التنسيق مع المقتصد لضمان التوزيع العادل والمخزون الكافي",
+          "dueDate": "2026-09-05",
+          "priority": "medium",
+          "status": "completed",
+          "responsiblePerson": "المقتصد والمدير",
+          "createdAt": "2026-09-05T15:45:12.790Z",
+          "updatedAt": "2026-09-05T15:45:12.790Z"
+        }
+      ],
+      "deadlines": [
+        {
+          "id": "dl-1",
+          "userId": "user-principal-chamkha",
+          "title": "إرسال الحصيلة الشهرية لغيابات الأساتذة والموظفين",
+          "description": "كشف الغيابات والشهادات الطبية لشهر سبتمبر",
+          "dueDate": "2026-09-05",
+          "authority": "مديرية التربية - مصلحة المستخدمين والتفتيش",
+          "priority": "urgent",
+          "status": "pending",
+          "createdAt": "2026-09-05T15:45:12.790Z",
+          "updatedAt": "2026-09-05T15:45:12.790Z"
+        },
+        {
+          "id": "dl-2",
+          "userId": "user-principal-chamkha",
+          "title": "إيداع الوضعية المالية والمحاسبية الثلاثية",
+          "description": "الحساب المالي والمصادقة على سندات الصرف مع المقتصد",
+          "dueDate": "2026-09-08",
+          "authority": "خزينة الولاية ومفتشية المالية",
+          "priority": "urgent",
+          "status": "pending",
+          "createdAt": "2026-09-05T15:45:12.790Z",
+          "updatedAt": "2026-09-05T15:45:12.790Z"
+        }
+      ],
+      "meetings": [
+        {
+          "id": "meet-1",
+          "userId": "user-principal-chamkha",
+          "type": "coordination_council",
+          "title": "مجلس التنسيق الإداري والتربوي الأسبوعي",
+          "date": "2026-09-06",
+          "time": "14:00",
+          "location": "قاعة الاجتماعات",
+          "subject": "تقييم سير الدروس، حالة النظافة والأمن، وتنسيق الأنشطة الثقافية",
+          "agenda": [
+            "الانضباط ومراقبة الدخول والخروج",
+            "متابعة الغيابات وتفعيل نظام الرسائل النصية",
+            "تحضير قوائم المستفيدين من التضامن المدرسي"
+          ],
+          "participants": [
+            "المدير",
+            "الناظر",
+            "مستشار التربية",
+            "المقتصد",
+            "طبيب الصحة المدرسية"
+          ],
+          "notes": "حضور الجميع إلزامي وتكليف أمانة المديرية بتدوين المحضر",
+          "generatedTasks": [
+            {
+              "id": "gt-1",
+              "title": "تحرير محضر مجلس التنسيق",
+              "completed": false
+            },
+            {
+              "id": "gt-2",
+              "title": "إمضاء المحضر من جميع الأعضاء",
+              "completed": false
+            },
+            {
+              "id": "gt-3",
+              "title": "أرشفة نسخة في سجل المجالس",
+              "completed": false
+            }
+          ],
+          "isCompleted": false,
+          "createdAt": "2026-09-05T15:45:12.790Z",
+          "updatedAt": "2026-09-05T15:45:12.790Z"
+        },
+        {
+          "id": "meet-2",
+          "userId": "user-principal-chamkha",
+          "type": "education_management_council",
+          "title": "مجلس التربية والتسيير - الدورة العادية الأولى",
+          "date": "2026-09-08",
+          "time": "15:00",
+          "location": "المكتبة المدرسية",
+          "subject": "مشروع الميزانية والتقرير السنوي لنشاط المؤسسة",
+          "agenda": [
+            "عرض مشروع الميزانية للسنة المالية الجديدة",
+            "اعتماد النظام الداخلي المحيّن",
+            "متفرقات"
+          ],
+          "participants": [
+            "المدير",
+            "ممثل الأساتذة",
+            "ممثل الموظفين",
+            "ممثل جمعية أولياء التلاميذ",
+            "المقتصد"
+          ],
+          "notes": "توزيع ملفات الدورة قبل 48 ساعة على الأقل",
+          "generatedTasks": [
+            {
+              "id": "gt-4",
+              "title": "إرسال استدعاءات الأعضاء مع جدول الأعمال",
+              "completed": true
+            },
+            {
+              "id": "gt-5",
+              "title": "تحضير نسخ مشروع الميزانية",
+              "completed": true
+            }
+          ],
+          "isCompleted": false,
+          "createdAt": "2026-09-05T15:45:12.790Z",
+          "updatedAt": "2026-09-05T15:45:12.790Z"
+        }
+      ],
+      "voiceMemos": [
+        {
+          "id": "memo-1",
+          "userId": "user-principal-chamkha",
+          "title": "توجيهات تخص تنظيم الساحات أثناء الاستراحة",
+          "content": "ضرورة توجيه المساعدين التربويين لتغطية كافة أجنحة المؤسسة ومنع التجمعات بالقرب من دورات المياه.",
+          "transcript": "ضرورة توجيه المساعدين التربويين لتغطية كافة أجنحة المؤسسة ومنع التجمعات بالقرب من دورات المياه.",
+          "category": "توجيهات إدارية",
+          "tags": [
+            "أمن",
+            "تربية",
+            "استراحة"
+          ],
+          "createdAt": "2026-09-05T15:45:12.790Z"
+        }
+      ],
+      "archives": [
+        {
+          "id": "arch-1",
+          "userId": "user-principal-chamkha",
+          "title": "المنشور الوزاري الخاص بترتيبات الدخول المدرسي 2026/2027",
+          "category": "مناشير وزارية",
+          "academicYear": "2026/2027",
+          "file": {
+            "id": "att-1",
+            "name": "منشور_الدخول_المدرسي_2026_2027.pdf",
+            "type": "pdf",
+            "size": 145000,
+            "uploadedAt": "2026-09-05T15:45:12.790Z"
+          },
+          "date": "2026-09-05",
+          "notes": "المرجع الرسمي لبرمجة المجالس والرزنامة السنوية",
+          "createdAt": "2026-09-05T15:45:12.790Z"
+        }
+      ],
+      "lastSyncedAt": "2026-09-05T15:45:12.790Z"
+    }
+  }
+}

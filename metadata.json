@@ -1,0 +1,6 @@
+{
+  "name": "مساعد مدير المتوسطة",
+  "description": "مساعد رقمي شخصي وإداري متكامل لمدير المتوسطة لتنظيم المواعيد، المهام، الاجتماعات والمجالس والآجال الإدارية",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="50%" stop-color="#1e40af"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Background Rounded Shield / Tile -->
+  <rect width="512" height="512" rx="110" fill="url(#bgGrad)"/>
+  
+  <!-- Outer Decorative Ring -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="url(#goldGrad)" stroke-width="4" opacity="0.4" stroke-dasharray="12 8"/>
+  
+  <!-- Central Emblem: Graduation Cap / School Arch / Shield / Calendar -->
+  <g filter="url(#shadow)">
+    <!-- Base Shield -->
+    <path d="M 256 100 L 370 145 L 370 270 C 370 345 256 400 256 400 C 256 400 142 345 142 270 L 142 145 Z" fill="#ffffff" opacity="0.96"/>
+    
+    <!-- Gold Top Crest Accent -->
+    <path d="M 256 112 L 358 152 L 358 200 C 320 180 280 170 256 170 C 232 170 192 180 154 200 L 154 152 Z" fill="url(#goldGrad)"/>
+    
+    <!-- Calendar & Pen / Checkmark Silhouette inside Shield -->
+    <!-- Calendar Header -->
+    <rect x="186" y="210" width="140" height="32" rx="8" fill="#1e3a8a"/>
+    <!-- Binder Rings -->
+    <rect x="216" y="198" width="10" height="18" rx="4" fill="#fbbf24"/>
+    <rect x="286" y="198" width="10" height="18" rx="4" fill="#fbbf24"/>
+    <!-- Calendar Body -->
+    <rect x="186" y="246" width="140" height="96" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+    <!-- Calendar Grid Dots -->
+    <circle cx="216" cy="272" r="6" fill="#3b82f6"/>
+    <circle cx="256" cy="272" r="6" fill="#10b981"/>
+    <circle cx="296" cy="272" r="6" fill="#f59e0b"/>
+    <circle cx="216" cy="306" r="6" fill="#6366f1"/>
+    <circle cx="256" cy="306" r="6" fill="#ef4444"/>
+    <!-- Checkmark Badge -->
+    <circle cx="296" cy="306" r="14" fill="#10b981"/>
+    <path d="M 290 306 L 294 310 L 302 301" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
